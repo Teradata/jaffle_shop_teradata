@@ -7,7 +7,7 @@
     {% do run_query('drop table '~schema_name~'.'~table_name~';') %}
 {% endif -%}
 
-{% do run_query('create foreign table '~schema_name~'.'~table_name~" using (location('"~source_path~"'));") %}
+{% do run_query('create foreign table '~schema_name~'.'~table_name~" ,EXTERNAL SECURITY gs_tables_db.PUBLIC_AUTH using (location('"~source_path~"'));") %}
 
 {% endmacro %}
 

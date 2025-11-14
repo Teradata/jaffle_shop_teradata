@@ -66,7 +66,7 @@ jaffle_shop_teradata:
       user: demo_user
       password: <PASSWORD HERE>
       logmech: TD2
-      schema: demo_user
+      schema: jaffle_shop
       tmode: ANSI
       threads: 1
       timeout_seconds: 300

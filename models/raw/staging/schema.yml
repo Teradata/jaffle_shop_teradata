@@ -2,53 +2,104 @@ version: 2
 
 sources:
   - name: cloud_storage
-    schema: "jaffle_shop" #This is the database in which our foreign objects reside
+    schema: "jaffle_shop" 
     tables:
       - name: raw_market_customers   
         description: "Market data from external provider"
         columns:
-          - name: Location
-            description: "Location of the source file"
+          - name: location
+            description: "Path or partition location of the source file"
           - name: id
-            description: "Anonymized customer id"
+            description: "Anonymized customer id from market provider"
           - name: spend
-            description: "Estimated customer monthly dining out spend" 
+            description: "Estimated customer monthly dining-out spend"
           - name: ptLocWkt
             description: "Customer residential area (geocoded)"     
         external:
           location: "/GS/storage.googleapis.com/clearscape_analytics_demo_data/DEMO_Market/Customer/"
           file_format: "parquet"                  
       - name: raw_market_competitors   
-        description: "Market data about competitors"
+        description: "Market competitor data (parquet files)."
+        columns:
+          - name: id
+            description: "Competitor id"
+          - name: name
+            description: "Competitor display name"
         external:
           location: "/GS/storage.googleapis.com/clearscape_analytics_demo_data/DEMO_Market/Competitor/"
           file_format: "parquet"    
 models:
   - name: stg_customers
+    description: "Staging customers table: normalized and cleaned customer attributes from raw sources."
+    meta:
+      owner: "analytics"
+      tags: ["staging", "customers"]
     columns:
       - name: customer_id
+        description: "Surrogate primary key for customers (from raw.id)"
         tests:
           - unique
           - not_null
 
+      - name: first_name
+        description: "Customer given name (cleaned)"
+      - name: last_name
+        description: "Customer family name (cleaned)"
+      - name: email
+        description: "Customer email address"
+
   - name: stg_orders
+    description: "Staging orders table: one row per order."
+    meta:
+      owner: "analytics"
+      tags: ["staging", "orders"]
     columns:
       - name: id
+        description: "Order primary key"
         tests:
           - unique
           - not_null
+
+      - name: user_id
+        description: "FK to stg_customers.customer_id"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+
       - name: status
+        description: "Order lifecycle status"
         tests:
           - accepted_values:
               values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+          - not_null
+
+      - name: order_date
+        description: "Date/time when the order was placed"              
 
   - name: stg_payments
+    description: "Staging payments table: payment records for orders."
+    meta:
+      owner: "analytics"
+      tags: ["staging", "payments"]
     columns:
       - name: id
+        description: "Payment primary key"
         tests:
           - unique
           - not_null
+
+      - name: order_id
+        description: "FK to stg_orders.id"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: id
+
       - name: payment_method
+        description: "Payment method used for the transaction"
         tests:
           - accepted_values:
               values: ['credit_card', 'coupon', 'bank_transfer', 'gift_card']

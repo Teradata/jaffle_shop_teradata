@@ -26,8 +26,8 @@ customer_orders as (
 
 customer_lifetime_value as (
     {# customer_lifetime_value is a common metric, and it is historized. #} 
-    select * from {{ ref('customer_lifetime_value') }}
-    where customer_lifetime_value.valid_period contains current_date
+    select * from {{ ref('cust_lifetime_value') }}
+    where cust_lifetime_value.valid_period contains current_date
 
 ),
 

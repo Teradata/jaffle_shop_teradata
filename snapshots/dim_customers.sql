@@ -3,7 +3,7 @@
 {{
     config(
       target_schema='rt186001',
-      unique_key='customer_id',
+      unique_key='customer_key',
       
       strategy='check',
       check_cols = 'all'
